@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Basic Mode Image Converter</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.all.min.js"></script>
+    <meta property="og:title" content="Convert image/audio to text to send via lite">
+<meta property="og:description" content="Convert images & audio to text and back — send media using lite messenger.">
+<meta property="og:image" content="https://i.ibb.co/4gDc2q2j/unnamed.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://code-my-image.ct.ws/">
+</head>
+
+<body>
+    <div id="splashScreen" class="splash-screen">
+        <div class="splash-content">
+            <div class="splash-logo">
+                <img src="img/app_logo.png" alt="Logo">
+            </div>
+            <p class="splash-text">App is Firing up....</p>
+            <div class="splash-loader">
+                <div class="loader-bar"></div>
+            </div>
+        </div>
+    </div>
+    <button id="infoBtn" onclick="openInfo()">ℹ️</button>
+    <button id="tutorialBtn" onclick="openTutorial()">Tutorial</button>
+    <button id="downloadApkBtn" onclick="handleApkDownload()">Download APK</button>
+
+    <div class="app-container">
+        <header>
+            <div class="logo-box">
+                <img src="img/app_logo.png" alt="App Logo"
+                    style="width: 100%; height: 100%; border-radius: inherit; object-fit: cover;">
+            </div>
+            <p class="subtitle">Basic Mode</p>
+            <h1>Image Converter</h1>
+            <p class="tagline">Convert images to text & text to images</p>
+        </header>
+
+        <div class="tabs-container">
+            <div class="tabs">
+                <button id="imgToTextTab" class="active" onclick="showSection('imgToText')">
+                    <i class="fas fa-image"></i> Image &rarr; Text
+                </button>
+                <button id="textToImgTab" onclick="showSection('textToImg')">
+                    <i class="fas fa-text-height"></i> Text &rarr; Image
+                </button>
+                <button id="audioToTextTab" onclick="showSection('audioToText')">
+                    <i class="fas fa-microphone"></i> Audio to Text
+                </button>
+                <button id="textToAudioTab" onclick="showSection('textToAudio')">
+                    <i class="fas fa-volume-up"></i> Text to Audio
+                </button>
+            </div>
+        </div>
+
+        <main>
+            <!-- Image to Text Section -->
+            <section id="imgToTextSection">
+                <div class="upload-card" onclick="document.getElementById('imageInput').click()">
+                    <div class="upload-icon-box">
+                        <i class="fas fa-image"></i>
+                        <span class="plus-icon">+</span>
+                    </div>
+                    <p class="upload-text">Tap to select an image</p>
+                    <p class="upload-subtext">From gallery or camera</p>
+                    <input type="file" id="imageInput" accept="image/*" hidden>
+                </div>
+
+                <div id="imagePreviewContainer" class="image-preview-container" style="display: none;">
+                    <img id="selectedImagePreview" src="" alt="Preview">
+                </div>
+
+                <div class="mode-selector" id="modeSelector" style="display: none;">
+                    <button id="smartModeBtn" class="mode-btn active" onclick="setConvertMode('smart')">
+                        <i class="fas fa-magic"></i> Smart Mode
+                    </button>
+                    <button id="manualModeBtn" class="mode-btn" onclick="setConvertMode('manual')">
+                        <i class="fas fa-sliders-h"></i> Manual Mode
+                    </button>
+                </div>
+
+                <div class="quality-control" id="qualityControl" style="display: none;">
+                    <div id="manualControls" style="display: none;">
+                        <div class="quality-header">
+                            <span>Image Quality</span>
+                            <span id="qualityValue" class="quality-percent">10%</span>
+                        </div>
+                        <input type="range" id="qualitySlider" min="1" max="100" value="10">
+
+                        <div class="quality-header" style="margin-top: 20px;">
+                            <span>Image Size (Resizer)</span>
+                            <span id="resizeValue" class="quality-percent">10%</span>
+                        </div>
+                        <input type="range" id="resizeSlider" min="10" max="100" value="10">
+
+                        <div class="lock-control"
+                            style="margin-top: 15px; display: flex; justify-content: flex-end; gap: 10px;">
+                            <button id="livePreviewBtn" class="small-action-btn active" onclick="toggleLivePreview()">
+                                <i class="fas fa-eye" id="liveIcon"></i> <span id="liveText">Live Preview</span>
+                            </button>
+                            <button id="lockBothBtn" class="small-action-btn" onclick="toggleLockBoth()">
+                                <i class="fas fa-lock-open" id="lockIcon"></i> <span id="lockText">Lock Both</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="smartPresets" class="smart-presets"
+                        style="display: none; flex-direction: column; gap: 10px;">
+                        <p class="preview-label"
+                            style="text-align: center; margin-bottom: 5px; font-size: 0.8rem; opacity: 0.8;">Target
+                            Character Limit:</p>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="setSmartTargetLimit(5000)" id="target5000"
+                                class="preset-btn active">5000</button>
+                            <button onclick="setSmartTargetLimit(10000)" id="target10000"
+                                class="preset-btn">10000</button>
+                            <button onclick="setSmartTargetLimit(15000)" id="target15000"
+                                class="preset-btn">15000</button>
+                            <button onclick="setSmartTargetLimit(20000)" id="target20000"
+                                class="preset-btn">20000</button>
+                        </div>
+                    </div>
+                    <div id="smartBadge" class="smart-badge">
+                        <i class="fas fa-magic"></i> <span id="smartStatus">Compressing to 50% quality</span>
+                    </div>
+                    <p class="estimated-chars" id="estimateWrapper">Estimated: ~<span id="charCount">0</span> / <span
+                            id="targetLimitLabel">5,000</span> characters <span id="originalSizeInfo"
+                            style="display: none; opacity: 0.7;">(Original: ~<span
+                                id="originalCharCount">0</span>)</span></p>
+                    <div id="charCountWarning" class="char-count-warning" style="display: none;">
+                        try to keep the character count less than 20k to avoid facebook issues (never go above 90k)
+                    </div>
+                    <div id="livePreviewContainer" class="live-preview-container" style="display: none;">
+                        <p class="preview-label">Live Result Preview:</p>
+                        <div class="live-preview-wrapper">
+                            <div id="previewLoader" class="preview-loader">
+                                <div class="spinner small-spinner"></div>
+                            </div>
+                            <img id="liveResultPreview" src="" alt="Live Preview">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-row">
+                    <button class="primary-btn" onclick="convertToBase64()">
+                        <i class="fas fa-file-alt"></i> Convert to Text
+                    </button>
+                    <button class="menu-btn" onclick="resetImgToText()"><i class="fas fa-times"></i></button>
+                </div>
+
+                <div id="resultContainer" class="result-container" style="display: none;">
+                    <div class="result-header">
+                        <div class="check-icon"><i class="fas fa-check"></i></div>
+                        <div class="result-info">
+                            <span class="result-title">Base64 Text</span>
+                            <span class="result-subtitle"><span id="finalCharCount">0</span> characters</span>
+                        </div>
+                    </div>
+                    <div class="text-output-wrapper">
+                        <textarea id="base64Output" readonly></textarea>
+                    </div>
+                    <div class="result-actions">
+                        <button class="secondary-btn" onclick="copyText()">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Text to Image Section -->
+            <section id="textToImgSection" style="display: none;">
+                <div class="input-card">
+                    <div class="card-header-actions">
+                        <button class="small-action-btn" onclick="pasteText('base64Input')">
+                            <i class="fas fa-paste"></i> Paste
+                        </button>
+                    </div>
+                    <textarea id="base64Input" placeholder="Paste Base64 string here..."></textarea>
+                </div>
+
+                <div class="action-row">
+                    <button class="primary-btn" onclick="convertToImage()">
+                        <i class="fas fa-image"></i> Convert to Image
+                    </button>
+                    <button class="menu-btn" onclick="resetTextToImg()"><i class="fas fa-times"></i></button>
+                </div>
+
+                <div id="decodedImageContainer" class="decoded-image-container" style="display: none;">
+                    <div class="image-wrapper">
+                        <img id="decodedImage" src="" alt="Decoded">
+                    </div>
+                    <div class="result-actions">
+                        <button class="secondary-btn" onclick="saveImage()">
+                            <i class="fas fa-download"></i> Save
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Text to Audio Section -->
+            <section id="textToAudioSection" class="audio-section" style="display: none;">
+                <h2>Text to Audio</h2>
+                <p>Paste a Base64 audio string and play it back as sound.</p>
+                <div class="input-card">
+                    <div class="card-header-actions">
+                        <button class="small-action-btn" onclick="pasteText('audioBase64Input')">
+                            <i class="fas fa-paste"></i> Paste
+                        </button>
+                    </div>
+                    <textarea id="audioBase64Input"
+                        placeholder="Paste Base64 audio data URL or raw Base64 here..."></textarea>
+                </div>
+                <div class="action-row">
+                    <button class="primary-btn" onclick="convertBase64ToAudio()">
+                        <i class="fas fa-play"></i> Play Audio
+                    </button>
+                    <button class="menu-btn" onclick="resetTextToAudio()"><i class="fas fa-times"></i></button>
+                </div>
+                <div id="audioPreviewContainer" class="decoded-image-container" style="display: none;">
+                    <div class="text-output-wrapper">
+                        <audio id="audioPreview" class="audio-preview" controls></audio>
+                    </div>
+                    <div class="result-actions" style="margin-top: 15px;">
+                        <button class="secondary-btn download-btn" onclick="saveAudio()">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Audio to Text (Record to Base64) Section -->
+            <section id="audioToTextSection" class="audio-section" style="display: none;">
+                <h2>Audio to Text</h2>
+                <p>Record audio and convert to Base64 text.</p>
+                <div class="decoded-image-container">
+                    <div class="quality-control">
+                        <div class="quality-header">
+                            <span>Audio Quality</span>
+                            <span id="audioQualityValue" class="quality-percent">5 kbps</span>
+                        </div>
+                        <input type="range" id="audioQualitySlider" min="3" max="10" value="5" step="1">
+                        <p class="estimated-chars">Higher quality means longer Base64 text.</p>
+                    </div>
+
+                    <div class="recording-controls-row">
+                        <button id="recordBtn" class="primary-btn" type="button" onclick="toggleRecording()">
+                            <i class="fas fa-microphone"></i> <span id="recordBtnLabel">Start Recording</span>
+                        </button>
+
+                        <div class="limit-container">
+                            <span class="limit-label">Character Limit</span>
+                            <button id="charLimitBtn" class="limit-btn" onclick="toggleCharLimit()">
+                                <span id="limitBtnText">Enable 100k Limit</span>
+                                <span id="limitBtnIcon" style="margin-left: 8px;">✓</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="recordingStats" class="recording-stats" style="display: none;">
+                        <div class="stat-item" title="Time Recorded">
+                            <i class="fas fa-clock"></i>
+                            <span id="recordingTime">0s</span>
+                        </div>
+                        <div class="stat-item" title="Estimated Characters">
+                            <i class="fas fa-file-alt"></i>
+                            <span id="estimatedRecordingChars">0</span> / <span id="maxCharLimitDisplay">90,000</span>
+                        </div>
+                    </div>
+                    <div id="audioCharCountWarning" class="char-count-warning" style="display: none;">
+                        try to keep the character count less than 90k to avoid facebook issues
+                        never go above 100k
+                    </div>
+
+                    <p id="recordStatus" class="record-status">Ready to record.</p>
+                    <div class="text-output-wrapper" id="recordedAudioPreviewWrapper"
+                        style="display: none; margin-top: 15px;">
+                        <audio id="recordedAudioPreview" class="audio-preview" controls></audio>
+                        <div class="result-actions" style="margin-top: 15px;">
+                            <button class="secondary-btn download-btn"
+                                onclick="saveAudio('recordedAudioPreview', 'recorded-audio')">
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="action-row" style="margin-top: 16px;">
+                    <button id="convertRecordedBtn" class="primary-btn" type="button"
+                        onclick="convertRecordedAudioToBase64()" disabled>
+                        <i class="fas fa-file-alt"></i> Convert to Text
+                    </button>
+                    <button class="menu-btn" onclick="resetAudioToText()"><i class="fas fa-times"></i></button>
+                </div>
+                <div id="recordedResultContainer" class="result-container" style="display: none;">
+                    <div class="result-header">
+                        <div class="check-icon"><i class="fas fa-check"></i></div>
+                        <div class="result-info">
+                            <span class="result-title">Recorded Audio Base64</span>
+                            <span class="result-subtitle"><span id="recordedCharCount">0</span> characters</span>
+                        </div>
+                    </div>
+                    <div class="text-output-wrapper">
+                        <textarea id="recordedBase64Output" readonly></textarea>
+                    </div>
+                    <div id="recordedAudioCharCountWarning" class="char-count-warning" style="display: none;">
+                        try to keep the character count less than 90k to avoid facebook issues
+                        never go above 100k
+                    </div>
+                    <div class="result-actions">
+                        <button class="secondary-btn" onclick="copyRecordedBase64()">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="spinner-box">
+            <div class="spinner"></div>
+            <p id="loadingText">Converting to base64...</p>
+        </div>
+    </div>
+    <div id="toast" class="toast">Copied to clipboard!</div>
+    <script src="cordova.js"></script>
+    <script src="js/index.js"></script>
+    <dialog id="infoDialog">
+
+        <div style="text-align:center;font-weight:600;margin-bottom:10px;">
+            ⬇️😓
+        </div>
+
+        <p style="text-align:center;margin-bottom:10px;">
+            The guy who vibe coded the app
+        </p>
+
+        <img src="541435442_122163320030773742_3687230520723428675_n.jpg"
+            style="width:100%;border-radius:12px;margin-bottom:10px;">
+
+        <!-- English Info -->
+        <div id="infoEnglish">
+
+            <p>
+                I used to send and receive images without MB back then using free messenger (aka lite) but they now give
+                some users the basic plus features to view images using lite. From that I wanted to make this app to
+                convert the image and to text , then send it using lite and then my friend can convert the the text to
+                image or audio
+            </p>
+
+            <p><b>Usage:-</b><br>
+                convert the image/audio to text<br>
+                copy the text and send to your friend using lite messenger<br>
+                (YOU CAN USE MESSENGER BUT I SAW THAT IT DOES NOT SEND THE WHOLE STRING. THAT'S WHY ITS BETTER TO USE
+                THE LITE MESSENGER)<br>
+                Your friend has to install the app also to convert the text to Media as well
+            </p>
+
+        </div>
+
+        <!-- Bangla Info -->
+        <div id="infoBangla" style="display:none;">
+
+            <p>
+                আগে Messenger Lite / Free Messenger ব্যবহার করে কোনো MB ছাড়াই ছবি পাঠানো যেত। এখন কিছু ইউজার basic plus
+                feature পাচ্ছে, তাই Lite দিয়েও ছবি দেখা যাচ্ছে।
+            </p>
+
+            <p>
+                এই আইডিয়া থেকেই আমি একটা অ্যাপ বানাতে চাই।
+            </p>
+
+            <p>
+                🔧 অ্যাপটি কী করবে?
+            </p>
+
+            <p>
+                ছবি / অডিও → টেক্সটে কনভার্ট করবে<br>
+                সেই টেক্সট তুমি Lite Messenger দিয়ে বন্ধুকে পাঠাবে<br>
+                তোমার বন্ধু একই অ্যাপ দিয়ে<br>
+                টেক্সট → আবার ছবি / অডিও বানাবে
+            </p>
+
+        </div>
+
+        <!-- LANGUAGE BUTTONS -->
+        <div style="display:flex;gap:10px;margin-top:15px;">
+            <button onclick="infoEnglish.style.display='block'; infoBangla.style.display='none';">
+                English
+            </button>
+
+            <button onclick="infoEnglish.style.display='none'; infoBangla.style.display='block';">
+                বাংলা
+            </button>
+
+            <button style="margin-left:auto;" onclick="closeInfo()">
+                Close
+            </button>
+        </div>
+
+        <!-- FACEBOOK CONTACT BUTTON (NEW) -->
+        <div style="margin-top:18px; text-align:center;">
+            <a href="https://www.facebook.com/R0KTlM/" target="_blank" style="
+                display:inline-block;
+                background:#3b5998;
+                padding:10px 14px;
+                border-radius:10px;
+                color:white;
+                text-decoration:none;
+                font-weight:600;
+                font-size:14px;
+            ">
+                Have a feature idea? Contact me on Facebook 💜
+            </a>
+        </div>
+
+    </dialog>
+    <dialog id="tutorialDialog">
+        <div style="text-align:center;font-weight:600;margin-bottom:15px;">
+            Tutorial Video
+        </div>
+        <video id="tutorialVideo" controls style="width:100%;border-radius:12px;margin-bottom:15px;">
+            <source
+                src="https://huggingface.co/roktimsardar123/cdn/resolve/main/tut.mp4"
+                type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div style="display:flex;justify-content:center;gap:15px;align-items:center;">
+            <button onclick="skipVideo(-5)" title="Skip Back 5s">
+                <i class="fas fa-undo"></i> -5s
+            </button>
+            <button onclick="closeTutorial()">
+                Close
+            </button>
+            <button onclick="skipVideo(5)" title="Skip Forward 5s">
+                +5s <i class="fas fa-redo"></i>
+            </button>
+        </div>
+    </dialog>
+
+    <dialog id="apkDialog">
+        <div style="text-align:center;font-weight:700;font-size:1.2rem;margin-bottom:15px; color: #7b61ff;">
+            Installation Steps
+        </div>
+
+        <div id="stepImageContainer"
+            style="position:relative; width:100%; border-radius:12px; overflow:hidden; margin-bottom:15px; aspect-ratio: 9/16; background: #121629;">
+            <img id="stepImage" src="https://huggingface.co/roktimsardar123/cdn/resolve/main/1.jpg"
+                style="width:100%; height:100%; object-fit: contain;">
+
+            <div
+                style="position:absolute; bottom:10px; left:0; right:0; display:flex; justify-content:center; gap:10px;">
+                <button onclick="changeStep(-1)" class="step-nav-btn" style="padding: 5px 10px; min-width: auto;"><i
+                        class="fas fa-chevron-left"></i></button>
+                <span id="stepIndicator"
+                    style="background:rgba(0,0,0,0.8); color: white; padding:4px 12px; border-radius:12px; font-size:0.8rem; pointer-events: none;">Step
+                    1/3</span>
+                <button onclick="changeStep(1)" class="step-nav-btn" style="padding: 5px 10px; min-width: auto;"><i
+                        class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            <p style="font-size:0.85rem; color:var(--text-muted); text-align:center;">
+                Follow these steps to install the app after downloading.
+            </p>
+            <button onclick="closeApkDialog()" style="width:100%; margin-top:5px;">
+                Close
+            </button>
+        </div>
+    </dialog>
+
+
+</body>
+
+</html>
